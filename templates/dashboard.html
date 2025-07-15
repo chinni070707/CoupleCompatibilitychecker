@@ -3,15 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>❤️</text></svg>">
 </head>
 <body>
-    <h2>Welcome, {{ current_user.username }}!</h2>
-    <p>Your User ID: <strong>{{ current_user.id }}</strong></p>
-    <a href="{{ url_for('logout') }}">Logout</a><br>
-    <a href="{{ url_for('answer_questions') }}">Answer Questions</a><br>
-    {% if current_user.is_admin %}
-    <a href="{{ url_for('admin_questions') }}">Manage Questions (Admin)</a><br>
-    {% endif %}
-    <a href="{{ url_for('compatibility') }}">Check Compatibility</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+      <i class="bi bi-heart-fill quirky-heart me-2"></i> Couple Compatibility Scorer
+    </a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h2 class="card-title mb-3">Welcome, {{ current_user.username }}!</h2>
+                    <p>Your User ID: <strong>{{ current_user.id }}</strong></p>
+                    <a href="{{ url_for('answer_questions') }}" class="btn btn-fancy mb-2">Answer Questions</a><br>
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_questions') }}" class="btn btn-warning mb-2">Manage Questions (Admin)</a><br>
+                    {% endif %}
+                    <a href="{{ url_for('compatibility') }}" class="btn btn-outline-fancy mb-2">Check Compatibility</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html> 

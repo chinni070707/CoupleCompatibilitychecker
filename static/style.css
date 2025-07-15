@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
+
+body {
+    font-family: 'Quicksand', Arial, sans-serif;
+    background: linear-gradient(135deg, #f8ffae 0%, #43c6ac 100%);
+    min-height: 100vh;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 1.7rem;
+    color: #ff5e62 !important;
+}
+
+.card {
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+}
+
+.btn-fancy {
+    background: linear-gradient(90deg, #ff5e62 0%, #ff9966 100%);
+    color: #fff;
+    border: none;
+    border-radius: 2rem;
+    font-weight: 600;
+    padding: 0.6rem 2rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px 0 rgba(255,94,98,0.15);
+}
+.btn-fancy:hover, .btn-fancy:focus {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 24px 0 rgba(255,94,98,0.25);
+    color: #fff;
+}
+
+.btn-outline-fancy {
+    border: 2px solid #ff5e62;
+    color: #ff5e62;
+    background: transparent;
+    border-radius: 2rem;
+    font-weight: 600;
+    padding: 0.6rem 2rem;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-outline-fancy:hover, .btn-outline-fancy:focus {
+    background: #ff5e62;
+    color: #fff;
+}
+
+h1, h2, h3, h4, h5 {
+    font-family: 'Quicksand', Arial, sans-serif;
+    font-weight: 700;
+}
+
+.bg-shape {
+    position: absolute;
+    z-index: 0;
+    opacity: 0.12;
+    pointer-events: none;
+}
+
+/* Quirky heart icon for fun */
+.quirky-heart {
+    color: #ff5e62;
+    font-size: 2.5rem;
+    animation: pulse 1.2s infinite alternate;
+}
+@keyframes pulse {
+    to { transform: scale(1.15); }
+} 

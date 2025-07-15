@@ -10,6 +10,7 @@ from wtforms import StringField, PasswordField, SubmitField, SelectField, Intege
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask import session
 from flask_wtf.csrf import generate_csrf
+from flask import abort
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
@@ -178,8 +179,10 @@ def answer_questions():
     # Get next unanswered question
     q = Question.query.filter(~Question.id.in_(answered_ids)).first()
     if not q:
-        flash('You have answered all questions!', 'success')
-        return redirect(url_for('dashboard'))
+        # All answered: show review page
+        questions = Question.query.all()
+        user_answers = {r.question_id: r.answer for r in current_user.responses}
+        return render_template('review_answers.html', questions=questions, user_answers=user_answers)
     form = AnswerForm()
     if form.validate_on_submit():
         resp = Response(user_id=current_user.id, question_id=q.id, answer=int(form.answer.data))
@@ -187,6 +190,20 @@ def answer_questions():
         db.session.commit()
         return redirect(url_for('answer_questions'))
     return render_template('answer_question.html', form=form, question=q)
+
+@app.route('/questions/edit/<int:question_id>', methods=['GET', 'POST'])
+@login_required
+def edit_answer(question_id):
+    q = Question.query.get_or_404(question_id)
+    resp = Response.query.filter_by(user_id=current_user.id, question_id=question_id).first()
+    if not resp:
+        abort(404)
+    form = AnswerForm(answer=str(resp.answer))
+    if form.validate_on_submit():
+        resp.answer = int(form.answer.data)
+        db.session.commit()
+        return redirect(url_for('answer_questions'))
+    return render_template('answer_question.html', form=form, question=q, editing=True)
 
 @app.route('/compatibility', methods=['GET', 'POST'])
 @login_required
