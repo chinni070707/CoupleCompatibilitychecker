@@ -77,8 +77,8 @@
                     </table>
                     </div>
                     <div class="text-center mt-4">
-                        <a href="{{ url_for('dashboard') }}" class="btn btn-fancy">Back to Dashboard</a>
-                        <a href="{{ url_for('admin_stats') }}" class="btn btn-outline-fancy ms-2">View Site Statistics</a>
+                        <a href="{{ url_for('admin_panel') }}" class="btn btn-secondary">Back to Admin Panel</a>
+                        <a href="{{ url_for('import_questions') }}" class="btn btn-info ms-2">Import Questions from JSON</a>
                     </div>
                     {% with messages = get_flashed_messages(with_categories=true) %}
                       {% if messages %}

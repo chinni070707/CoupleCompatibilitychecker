@@ -15,7 +15,10 @@
     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
       <i class="bi bi-heart-fill quirky-heart me-2"></i> Couple Compatibility Scorer
     </a>
-    <div class="collapse navbar-collapse">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
       </ul>
@@ -28,10 +31,10 @@
             <div class="card">
                 <div class="card-body text-center">
                     <h2 class="card-title mb-3">Welcome, {{ current_user.username }}!</h2>
-                    <p>Your User ID: <strong>{{ current_user.id }}</strong></p>
+                    <p>Your Username: <strong>{{ current_user.username }}</strong></p>
                     <a href="{{ url_for('answer_questions') }}" class="btn btn-fancy mb-2">Answer Questions</a><br>
                     {% if current_user.is_admin %}
-                    <a href="{{ url_for('admin_questions') }}" class="btn btn-warning mb-2">Manage Questions (Admin)</a><br>
+                    <a href="{{ url_for('admin_panel') }}" class="btn btn-warning mb-2">Admin Panel</a><br>
                     {% endif %}
                     <a href="{{ url_for('compatibility') }}" class="btn btn-outline-fancy mb-2">Check Compatibility</a>
                 </div>

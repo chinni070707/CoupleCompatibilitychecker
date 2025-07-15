@@ -11,6 +11,8 @@ from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask import session
 from flask_wtf.csrf import generate_csrf
 from flask import abort
+from flask_wtf.file import FileField, FileAllowed, FileRequired # New import for file uploads
+import json # New import for JSON parsing
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
@@ -28,6 +30,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    signup_date = db.Column(db.DateTime, server_default=db.func.now()) # New column for signup date
 
 # Question model
 class Question(db.Model):
@@ -84,15 +87,19 @@ class AnswerForm(FlaskForm):
     submit = SubmitField('Next')
 
 class CompatibilityForm(FlaskForm):
-    user1_id = IntegerField('User 1 ID', validators=[DataRequired()])
-    user2_id = IntegerField('User 2 ID', validators=[DataRequired()])
+    user1_id = StringField('User 1 Username', validators=[DataRequired()])
+    user2_id = StringField('User 2 Username', validators=[DataRequired()])
     show_details = SubmitField('Show Details')
     submit = SubmitField('Check Compatibility')
 
+class UploadQuestionsForm(FlaskForm):
+    json_file = FileField('JSON File', validators=[FileRequired(), FileAllowed(['json'], 'JSON files only!')])
+    submit = SubmitField('Import Questions')
+
 class CompatibilityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user1_id = db.Column(db.Integer, nullable=False)
-    user2_id = db.Column(db.Integer, nullable=False)
+    user1_username = db.Column(db.String(150), nullable=False)
+    user2_username = db.Column(db.String(150), nullable=False)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
 @login_manager.user_loader
@@ -164,6 +171,14 @@ def logout():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route('/admin')
+@login_required
+def admin_panel():
+    if not current_user.is_admin:
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('dashboard'))
+    return render_template('admin.html')
+
 @app.route('/admin/questions', methods=['GET', 'POST'])
 @login_required
 def admin_questions():
@@ -180,6 +195,59 @@ def admin_questions():
     questions = Question.query.all()
     csrf_token = generate_csrf()
     return render_template('admin_questions.html', form=form, questions=questions, csrf_token=csrf_token)
+
+@app.route('/admin/import_questions', methods=['GET', 'POST'])
+@login_required
+def import_questions():
+    if not current_user.is_admin:
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    form = UploadQuestionsForm()
+    if form.validate_on_submit():
+        if 'json_file' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+        file = request.files['json_file']
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+        if file and file.filename.endswith('.json'):
+            try:
+                questions_data = json.load(file)
+                new_questions_count = 0
+                for category_data in questions_data:
+                    category_name = category_data.get('category')
+                    if not category_name:
+                        flash(f'Skipping category with missing name.', 'warning')
+                        continue
+
+                    for q_data in category_data.get('questions', []):
+                        # Map question_type from JSON to our 'type' field
+                        question_type_map = {
+                            'yes_no': 'yesno',
+                            'scale': 'scale'
+                        }
+                        question_type = question_type_map.get(q_data.get('question_type'), 'scale') # Default to scale
+
+                        # Validate question data structure before inserting
+                        if all(key in q_data for key in ['text']):
+                            q = Question(text=q_data['text'], category=category_name, type=question_type)
+                            db.session.add(q)
+                            new_questions_count += 1
+                        else:
+                            flash(f'Skipping malformed question in category {category_name}: {q_data.get("text", "N/A")}', 'warning')
+                db.session.commit()
+                flash(f'Successfully imported {new_questions_count} questions from JSON.', 'success')
+            except json.JSONDecodeError:
+                flash('Invalid JSON file format.', 'danger')
+            except Exception as e:
+                flash(f'An error occurred during import: {str(e)}', 'danger')
+        else:
+            flash('Invalid file type. Please upload a JSON file.', 'danger')
+        return redirect(url_for('admin_questions')) # Redirect back to manage questions page
+
+    return render_template('admin_import_questions.html', form=form) # New template for import page
 
 @app.route('/admin/questions/delete/<int:question_id>', methods=['POST'])
 @login_required
@@ -248,6 +316,26 @@ def admin_stats():
     total_checks = CompatibilityLog.query.count()
     return render_template('admin_stats.html', user_count=user_count, questions=questions, answers_per_user=answers_per_user, total_checks=total_checks)
 
+@app.route('/admin/users')
+@login_required
+def admin_users():
+    if not current_user.is_admin:
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    users_data = []
+    all_users = User.query.all()
+    for user in all_users:
+        answered_questions_count = Response.query.filter_by(user_id=user.id).count()
+        initiated_checks = CompatibilityLog.query.filter((CompatibilityLog.user1_username == user.username) | (CompatibilityLog.user2_username == user.username)).count()
+        users_data.append({
+            'username': user.username,
+            'signup_date': user.signup_date.strftime('%Y-%m-%d %H:%M'), # Format date for display
+            'questions_answered': answered_questions_count,
+            'compatibility_checks': initiated_checks
+        })
+    return render_template('admin_users.html', users_data=users_data)
+
 @app.route('/compatibility', methods=['GET', 'POST'])
 @login_required
 def compatibility():
@@ -255,13 +343,13 @@ def compatibility():
     result = None
     details = None
     if form.validate_on_submit():
-        user1 = User.query.get(form.user1_id.data)
-        user2 = User.query.get(form.user2_id.data)
+        user1 = User.query.filter_by(username=form.user1_id.data).first()
+        user2 = User.query.filter_by(username=form.user2_id.data).first()
         if not user1 or not user2:
-            flash('Invalid user IDs.', 'danger')
+            flash('Invalid usernames.', 'danger')
         else:
             # Log the compatibility check
-            log = CompatibilityLog(user1_id=user1.id, user2_id=user2.id)
+            log = CompatibilityLog(user1_username=user1.username, user2_username=user2.username)
             db.session.add(log)
             db.session.commit()
             qids = [q.id for q in Question.query.all()]
@@ -298,4 +386,4 @@ def compatibility():
     return render_template('compatibility.html', form=form, result=result, details=details)
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)

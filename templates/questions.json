@@ -1,0 +1,80 @@
+[
+    {
+      "category": "family_living",
+      "label": "Family & Living Arrangements",
+      "questions": [
+        { "id": 1, "text": "I am comfortable living in a joint family setup.", "question_type": "yes_no" },
+        { "id": 2, "text": "I would like my parents to live with us in the future.", "question_type": "scale" },
+        { "id": 3, "text": "I am okay with my partner’s family staying with us after marriage.", "question_type": "scale" },
+        { "id": 4, "text": "I enjoy frequent visits from extended family.", "question_type": "scale" },
+        { "id": 5, "text": "I value family approval in major life decisions.", "question_type": "scale" }
+      ]
+    },
+    {
+      "category": "finances_lifestyle",
+      "label": "Finances & Lifestyle",
+      "questions": [
+        { "id": 6, "text": "I am comfortable sharing financial responsibilities equally.", "question_type": "scale" },
+        { "id": 7, "text": "I prefer maintaining separate finances after marriage.", "question_type": "scale" },
+        { "id": 8, "text": "I actively plan and manage my savings and investments.", "question_type": "scale" },
+        { "id": 9, "text": "I’m okay if my partner earns significantly more or less than me.", "question_type": "scale" },
+        { "id": 10, "text": "I believe financial support for parents is a shared responsibility.", "question_type": "scale" }
+      ]
+    },
+    {
+      "category": "culture_religion",
+      "label": "Culture, Religion & Traditions",
+      "questions": [
+        { "id": 11, "text": "I follow religious customs and rituals regularly.", "question_type": "scale" },
+        { "id": 12, "text": "I enjoy participating in traditional festivals and family functions.", "question_type": "scale" },
+        { "id": 13, "text": "I am open to marrying someone from a different religion or caste.", "question_type": "scale" },
+        { "id": 14, "text": "I would prefer my partner to follow the same religious practices.", "question_type": "scale" },
+        { "id": 15, "text": "I strongly value traditional values and customs in daily life.", "question_type": "scale" }
+      ]
+    },
+    {
+      "category": "values_decision",
+      "label": "Values & Decision-Making",
+      "questions": [
+        { "id": 16, "text": "I handle conflicts and disagreements in a calm and rational manner.", "question_type": "scale" },
+        { "id": 17, "text": "I believe both partners should have equal say in family decisions.", "question_type": "scale" },
+        { "id": 18, "text": "Personal space is very important to me in a relationship.", "question_type": "scale" },
+        { "id": 19, "text": "I would always discuss major decisions with my partner before acting.", "question_type": "scale" },
+        { "id": 20, "text": "I believe compromise is essential in a healthy marriage.", "question_type": "scale" }
+      ]
+    },
+    {
+      "category": "career_ambitions",
+      "label": "Career & Ambitions",
+      "questions": [
+        { "id": 21, "text": "I will fully support my partner’s career ambitions.", "question_type": "scale" },
+        { "id": 22, "text": "I am open to relocating for either mine or my partner’s job.", "question_type": "scale" },
+        { "id": 23, "text": "Career growth is a top priority for me.", "question_type": "scale" },
+        { "id": 24, "text": "I am okay with my partner having a demanding job with late hours.", "question_type": "scale" },
+        { "id": 25, "text": "I am willing to take a break from work for family if needed.", "question_type": "scale" }
+      ]
+    },
+    {
+      "category": "children_pets",
+      "label": "Children, Pets & Parenting",
+      "questions": [
+        { "id": 26, "text": "I want to have children in the future.", "question_type": "scale" },
+        { "id": 27, "text": "I would like to have children within the first 2-3 years of marriage.", "question_type": "scale" },
+        { "id": 28, "text": "I am open to the idea of adoption.", "question_type": "scale" },
+        { "id": 29, "text": "I believe parenting responsibilities should be equally divided.", "question_type": "scale" },
+        { "id": 30, "text": "I would like to have pets and share responsibilities with my partner.", "question_type": "scale" }
+      ]
+    },
+    {
+      "category": "dealbreakers",
+      "label": "Dealbreakers",
+      "questions": [
+        { "id": 31, "text": "I value complete honesty and transparency in a relationship.", "question_type": "scale" },
+        { "id": 32, "text": "I consider infidelity a complete dealbreaker.", "question_type": "scale" },
+        { "id": 33, "text": "I prefer knowing about my partner’s past relationships.", "question_type": "scale" },
+        { "id": 34, "text": "I believe jealousy and possessiveness are unhealthy in love.", "question_type": "scale" },
+        { "id": 35, "text": "I can forgive and move on from relationship mistakes.", "question_type": "scale" }
+      ]
+    }
+  ]
+  

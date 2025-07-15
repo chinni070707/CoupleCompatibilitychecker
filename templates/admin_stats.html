@@ -15,7 +15,14 @@
     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
       <i class="bi bi-heart-fill quirky-heart me-2"></i> Couple Compatibility Scorer
     </a>
-    <div class="collapse navbar-collapse"></div>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+      </ul>
+    </div>
   </div>
 </nav>
 <div class="container mt-4">
@@ -58,7 +65,8 @@
                         <span class="display-6 fw-bold">{{ total_checks }}</span>
                     </div>
                     <div class="text-center mt-4">
-                        <a href="{{ url_for('admin_questions') }}" class="btn btn-fancy">Back to Admin Panel</a>
+                        <a href="{{ url_for('admin_panel') }}" class="btn btn-fancy">Back to Admin Panel</a>
+                        <a href="{{ url_for('admin_questions') }}" class="btn btn-outline-fancy ms-2">View Questions</a>
                     </div>
                 </div>
             </div>
