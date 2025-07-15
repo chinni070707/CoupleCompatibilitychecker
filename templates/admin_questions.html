@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Manage Questions</title>
+</head>
+<body>
+    <h2>Manage Questions</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>{{ form.text.label }}<br>{{ form.text(size=60) }}</p>
+        <p>{{ form.category.label }}<br>{{ form.category() }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+    <h3>Existing Questions</h3>
+    <table border="1">
+        <tr><th>ID</th><th>Text</th><th>Category</th><th>Delete</th></tr>
+        {% for q in questions %}
+        <tr>
+            <td>{{ q.id }}</td>
+            <td>{{ q.text }}</td>
+            <td>{{ q.category }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('delete_question', question_id=q.id) }}" style="display:inline;">
+                    {{ form.hidden_tag() }}
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+        {% for category, message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</body>
+</html> 

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Check Compatibility</title>
+</head>
+<body>
+    <h2>Check Compatibility</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>{{ form.user1_id.label }}<br>{{ form.user1_id() }}</p>
+        <p>{{ form.user2_id.label }}<br>{{ form.user2_id() }}</p>
+        <p>{{ form.submit() }} {{ form.show_details() }}</p>
+    </form>
+    {% if result %}
+        <h3>Results</h3>
+        <p>Total Questions Compared: {{ result.total }}</p>
+        <p><strong>Overall Match Score: {{ result.score }} / 100</strong></p>
+        <h4>Category Scores</h4>
+        <ul>
+        {% for cat, score in result.cat_scores.items() %}
+            <li>{{ cat|capitalize }}: {{ score }} / 100</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% if details %}
+        <h3>Per-Question Details</h3>
+        <table border="1">
+            <tr><th>Question</th><th>Category</th><th>User 1 Answer</th><th>User 2 Answer</th><th>Score</th></tr>
+            {% for d in details %}
+            <tr>
+                <td>{{ d.question }}</td>
+                <td>{{ d.category }}</td>
+                <td>{{ d.user1_answer }}</td>
+                <td>{{ d.user2_answer }}</td>
+                <td>{{ d.score }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+        {% for category, message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</body>
+</html> 

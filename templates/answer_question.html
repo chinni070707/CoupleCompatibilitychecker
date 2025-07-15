@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Answer Question</title>
+</head>
+<body>
+    <h2>Question</h2>
+    <p><strong>{{ question.text }}</strong> <em>({{ question.category }})</em></p>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>{{ form.answer.label }}<br>
+        {% for subfield in form.answer %}
+            {{ subfield() }} {{ subfield.label.text }}
+        {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+        {% for category, message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</body>
+</html> 
