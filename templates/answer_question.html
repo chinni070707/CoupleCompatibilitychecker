@@ -25,15 +25,28 @@
                 <div class="card-body">
                     <h2 class="card-title mb-4 text-center">{% if editing %}Edit Your Answer{% else %}Answer the Question{% endif %}</h2>
                     <p class="fs-5 mb-3"><strong>{{ question.text }}</strong> <span class="badge bg-secondary">{{ question.category }}</span></p>
+                    {% if question.type == 'yesno' %}
+                        <p class="text-muted mb-2">This is a Yes/No question. Please select one.</p>
+                    {% else %}
+                        <p class="text-muted mb-2">This is a scale question. Please select a value from 1 to 10.</p>
+                    {% endif %}
                     <form method="POST">
                         {{ form.hidden_tag() }}
                         <div class="mb-4 text-center">
-                            {{ form.answer.label(class_="form-label") }}<br>
-                            {% for subfield in form.answer %}
-                                <label class="btn btn-outline-fancy btn-sm mx-1 mb-2">
-                                    {{ subfield() }} {{ subfield.label.text }}
-                                </label>
-                            {% endfor %}
+                            {% if question.type == 'yesno' %}
+                                {% for subfield in form.answer %}
+                                    <label class="btn btn-outline-fancy btn-lg mx-2 mb-2">
+                                        {{ subfield() }} {{ subfield.label.text }}
+                                    </label>
+                                {% endfor %}
+                            {% else %}
+                                {{ form.answer.label(class_="form-label") }}<br>
+                                {% for subfield in form.answer %}
+                                    <label class="btn btn-outline-fancy btn-sm mx-1 mb-2">
+                                        {{ subfield() }} {{ subfield.label.text }}
+                                    </label>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                         <div class="d-grid gap-2">
                             {{ form.submit(class_="btn btn-fancy") }}

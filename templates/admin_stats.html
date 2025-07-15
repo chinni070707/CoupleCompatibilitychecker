@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Site Statistics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>❤️</text></svg>">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+      <i class="bi bi-heart-fill quirky-heart me-2"></i> Couple Compatibility Scorer
+    </a>
+    <div class="collapse navbar-collapse"></div>
+  </div>
+</nav>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card" style="max-width: 900px; margin: 0 auto;">
+                <div class="card-body">
+                    <h2 class="card-title mb-4 text-center">Website Usage Statistics</h2>
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="p-3 bg-light rounded shadow-sm text-center">
+                                <h4><i class="bi bi-people-fill text-primary"></i> Users</h4>
+                                <span class="display-5 fw-bold">{{ user_count }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="p-3 bg-light rounded shadow-sm text-center">
+                                <h4><i class="bi bi-question-circle-fill text-success"></i> Questions</h4>
+                                <span class="display-5 fw-bold">{{ questions }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <h5>Questions Answered Per User</h5>
+                        <table class="table table-striped table-hover align-middle">
+                            <tr class="table-primary">
+                                <th>User</th>
+                                <th>Questions Answered</th>
+                            </tr>
+                            {% for username, count in answers_per_user.items() %}
+                            <tr>
+                                <td>{{ username }}</td>
+                                <td>{{ count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                    <div class="mb-4">
+                        <h5><i class="bi bi-heart-pulse text-danger"></i> Total Compatibility Checks</h5>
+                        <span class="display-6 fw-bold">{{ total_checks }}</span>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('admin_questions') }}" class="btn btn-fancy">Back to Admin Panel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

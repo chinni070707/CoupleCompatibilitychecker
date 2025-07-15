@@ -27,13 +27,17 @@
                     <form method="POST" class="mb-4">
                         {{ form.hidden_tag() }}
                         <div class="row g-3 align-items-center mb-3">
-                            <div class="col-md-8">
+                            <div class="col-md-6">
                                 {{ form.text.label(class_="form-label") }}
                                 {{ form.text(class_="form-control") }}
                             </div>
                             <div class="col-md-3">
                                 {{ form.category.label(class_="form-label") }}
                                 {{ form.category(class_="form-select") }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ form.type.label(class_="form-label") }}
+                                {{ form.type(class_="form-select") }}
                             </div>
                             <div class="col-md-1 d-grid gap-2">
                                 {{ form.submit(class_="btn btn-fancy") }}
@@ -47,6 +51,7 @@
                             <th>ID</th>
                             <th>Text</th>
                             <th>Category</th>
+                            <th>Type</th>
                             <th>Delete</th>
                         </tr>
                         {% for q in questions %}
@@ -54,6 +59,13 @@
                             <td>{{ q.id }}</td>
                             <td>{{ q.text }}</td>
                             <td><span class="badge bg-secondary">{{ q.category }}</span></td>
+                            <td>
+                                {% if q.type == 'yesno' %}
+                                    <span class="badge bg-info">Yes/No</span>
+                                {% else %}
+                                    <span class="badge bg-success">Scale 1-10</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 <form method="POST" action="{{ url_for('delete_question', question_id=q.id) }}" style="display:inline;">
                                     {{ form.hidden_tag() }}
@@ -66,6 +78,7 @@
                     </div>
                     <div class="text-center mt-4">
                         <a href="{{ url_for('dashboard') }}" class="btn btn-fancy">Back to Dashboard</a>
+                        <a href="{{ url_for('admin_stats') }}" class="btn btn-outline-fancy ms-2">View Site Statistics</a>
                     </div>
                     {% with messages = get_flashed_messages(with_categories=true) %}
                       {% if messages %}

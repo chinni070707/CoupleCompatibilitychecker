@@ -34,6 +34,7 @@ class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(500), nullable=False)
     category = db.Column(db.String(50), nullable=False)  # family, lifestyle, values, likes
+    type = db.Column(db.String(10), nullable=False, default='scale')  # 'scale' or 'yesno'
 
 # Response model
 class Response(db.Model):
@@ -66,7 +67,16 @@ class LoginForm(FlaskForm):
 # Admin: Add Question Form
 class QuestionForm(FlaskForm):
     text = StringField('Question Text', validators=[DataRequired(), Length(max=500)])
-    category = SelectField('Category', choices=[('family', 'Family'), ('lifestyle', 'Lifestyle'), ('values', 'Values'), ('likes', 'Likes')], validators=[DataRequired()])
+    category = SelectField('Category', choices=[
+        ('family_living', 'Family & Living Arrangements'),
+        ('finances_lifestyle', 'Finances & Lifestyle'),
+        ('culture_religion', 'Culture, Religion & Traditions'),
+        ('values_decision', 'Values & Decision-Making'),
+        ('career_ambitions', 'Career & Ambitions'),
+        ('children_pets', 'Children, Pets & Parenting'),
+        ('dealbreakers', 'Dealbreakers')
+    ], validators=[DataRequired()])
+    type = SelectField('Type', choices=[('scale', 'Scale (1-10)'), ('yesno', 'Yes/No')], validators=[DataRequired()], default='scale')
     submit = SubmitField('Add Question')
 
 class AnswerForm(FlaskForm):
@@ -78,6 +88,12 @@ class CompatibilityForm(FlaskForm):
     user2_id = IntegerField('User 2 ID', validators=[DataRequired()])
     show_details = SubmitField('Show Details')
     submit = SubmitField('Check Compatibility')
+
+class CompatibilityLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user1_id = db.Column(db.Integer, nullable=False)
+    user2_id = db.Column(db.Integer, nullable=False)
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -98,6 +114,12 @@ def init_db():
         print(f'Admin user created: {admin_username} / {admin_password}')
     else:
         print('Admin user already exists.')
+
+@app.cli.command('delete-all-questions')
+def delete_all_questions():
+    num_deleted = Question.query.delete()
+    db.session.commit()
+    print(f'Deleted {num_deleted} questions from the database.')
 
 @app.route('/')
 def home():
@@ -150,7 +172,7 @@ def admin_questions():
         return redirect(url_for('dashboard'))
     form = QuestionForm()
     if form.validate_on_submit():
-        q = Question(text=form.text.data, category=form.category.data)
+        q = Question(text=form.text.data, category=form.category.data, type=form.type.data)
         db.session.add(q)
         db.session.commit()
         flash('Question added.', 'success')
@@ -174,22 +196,25 @@ def delete_question(question_id):
 @app.route('/questions', methods=['GET', 'POST'])
 @login_required
 def answer_questions():
-    # Get all question IDs user has answered
     answered_ids = {r.question_id for r in current_user.responses}
-    # Get next unanswered question
     q = Question.query.filter(~Question.id.in_(answered_ids)).first()
     if not q:
-        # All answered: show review page
         questions = Question.query.all()
         user_answers = {r.question_id: r.answer for r in current_user.responses}
         return render_template('review_answers.html', questions=questions, user_answers=user_answers)
+    # Choose form options based on question type
+    if q.type == 'yesno':
+        choices = [('10', 'Yes'), ('1', 'No')]
+    else:
+        choices = [(str(i), str(i)) for i in range(1, 11)]
     form = AnswerForm()
+    form.answer.choices = choices
     if form.validate_on_submit():
         resp = Response(user_id=current_user.id, question_id=q.id, answer=int(form.answer.data))
         db.session.add(resp)
         db.session.commit()
         return redirect(url_for('answer_questions'))
-    return render_template('answer_question.html', form=form, question=q)
+    return render_template('answer_question.html', form=form, question=q, editing=False)
 
 @app.route('/questions/edit/<int:question_id>', methods=['GET', 'POST'])
 @login_required
@@ -198,12 +223,30 @@ def edit_answer(question_id):
     resp = Response.query.filter_by(user_id=current_user.id, question_id=question_id).first()
     if not resp:
         abort(404)
+    if q.type == 'yesno':
+        choices = [('10', 'Yes'), ('1', 'No')]
+    else:
+        choices = [(str(i), str(i)) for i in range(1, 11)]
     form = AnswerForm(answer=str(resp.answer))
+    form.answer.choices = choices
     if form.validate_on_submit():
         resp.answer = int(form.answer.data)
         db.session.commit()
         return redirect(url_for('answer_questions'))
     return render_template('answer_question.html', form=form, question=q, editing=True)
+
+@app.route('/admin/stats')
+@login_required
+def admin_stats():
+    if not current_user.is_admin:
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('dashboard'))
+    user_count = User.query.count()
+    users = User.query.all()
+    questions = Question.query.count()
+    answers_per_user = {u.username: len(u.responses) for u in users}
+    total_checks = CompatibilityLog.query.count()
+    return render_template('admin_stats.html', user_count=user_count, questions=questions, answers_per_user=answers_per_user, total_checks=total_checks)
 
 @app.route('/compatibility', methods=['GET', 'POST'])
 @login_required
@@ -217,6 +260,10 @@ def compatibility():
         if not user1 or not user2:
             flash('Invalid user IDs.', 'danger')
         else:
+            # Log the compatibility check
+            log = CompatibilityLog(user1_id=user1.id, user2_id=user2.id)
+            db.session.add(log)
+            db.session.commit()
             qids = [q.id for q in Question.query.all()]
             user1_answers = {r.question_id: r.answer for r in user1.responses if r.question_id in qids}
             user2_answers = {r.question_id: r.answer for r in user2.responses if r.question_id in qids}
