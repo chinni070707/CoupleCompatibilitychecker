@@ -6,13 +6,14 @@ import os
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField, RadioField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, IntegerField, RadioField, TextAreaField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask import session
 from flask_wtf.csrf import generate_csrf
 from flask import abort
 from flask_wtf.file import FileField, FileAllowed, FileRequired # New import for file uploads
 import json # New import for JSON parsing
+from datetime import datetime, date
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
@@ -30,7 +31,13 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    signup_date = db.Column(db.DateTime, server_default=db.func.now()) # New column for signup date
+    signup_date = db.Column(db.DateTime, server_default=db.func.now())
+    name = db.Column(db.String(150), nullable=False)
+    date_of_birth = db.Column(db.Date, nullable=False)
+    sex = db.Column(db.String(20), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    intro = db.Column(db.Text, nullable=True)
 
 # Question model
 class Question(db.Model):
@@ -51,15 +58,34 @@ class Response(db.Model):
 
 # Registration form
 class RegistrationForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired(), Length(max=150)])
+    date_of_birth = StringField('Date of Birth', validators=[DataRequired(), Length(max=10)])
+    sex = SelectField('Sex', choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')], validators=[DataRequired()])
+    city = StringField('City', validators=[DataRequired(), Length(max=100)])
+    email = StringField('Email ID', validators=[DataRequired(), Length(max=150)])
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=150)])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    intro = TextAreaField('Short Introduction', validators=[Length(max=1000)])
     submit = SubmitField('Sign Up')
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user:
             raise ValidationError('Username already exists.')
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('Email already exists.')
+    def validate_date_of_birth(self, field):
+        try:
+            dob = datetime.strptime(field.data, '%Y-%m-%d').date()
+        except Exception:
+            raise ValidationError('Invalid date format. Use YYYY-MM-DD.')
+        today = date.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        if age < 10:
+            raise ValidationError('You must be at least 10 years old to register.')
 
 # Login form
 class LoginForm(FlaskForm):
@@ -102,6 +128,56 @@ class CompatibilityLog(db.Model):
     user2_username = db.Column(db.String(150), nullable=False)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
+class EditProfileForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired(), Length(max=150)])
+    date_of_birth = StringField('Date of Birth', validators=[DataRequired(), Length(max=10)])
+    sex = SelectField('Sex', choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')], validators=[DataRequired()])
+    city = StringField('City', validators=[DataRequired(), Length(max=100)])
+    email = StringField('Email ID', validators=[DataRequired(), Length(max=150)])
+    intro = TextAreaField('Short Introduction', validators=[Length(max=1000)])
+    submit = SubmitField('Update Profile')
+
+    def validate_email(self, email):
+        if email.data != current_user.email:
+            user = User.query.filter_by(email=email.data).first()
+            if user:
+                raise ValidationError('Email already exists.')
+    def validate_date_of_birth(self, field):
+        try:
+            dob = datetime.strptime(field.data, '%Y-%m-%d').date()
+        except Exception:
+            raise ValidationError('Invalid date format. Use YYYY-MM-DD.')
+        today = date.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        if age < 10:
+            raise ValidationError('You must be at least 10 years old to use this app.')
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    form = EditProfileForm(obj=current_user)
+    if form.validate_on_submit():
+        from datetime import datetime
+        current_user.name = form.name.data
+        current_user.date_of_birth = datetime.strptime(form.date_of_birth.data, '%Y-%m-%d').date()
+        current_user.sex = form.sex.data
+        current_user.city = form.city.data
+        current_user.email = form.email.data
+        current_user.intro = form.intro.data
+        # Do NOT update current_user.username here
+        db.session.commit()
+        flash('Profile updated successfully.', 'success')
+        return redirect(url_for('dashboard'))
+    # Pre-fill form with current user data
+    form.name.data = current_user.name
+    form.date_of_birth.data = current_user.date_of_birth.strftime('%Y-%m-%d')
+    form.sex.data = current_user.sex
+    form.city.data = current_user.city
+    form.email.data = current_user.email
+    form.intro.data = current_user.intro
+    username = current_user.username  # Pass username to template for display
+    return render_template('profile.html', form=form, username=username)
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -115,7 +191,18 @@ def init_db():
     admin_password = 'admin123'  # Change after first login
     if not User.query.filter_by(username=admin_username).first():
         hashed_pw = bcrypt.generate_password_hash(admin_password).decode('utf-8')
-        admin = User(username=admin_username, password_hash=hashed_pw, is_admin=True)
+        from datetime import datetime
+        admin = User(
+            username=admin_username,
+            password_hash=hashed_pw,
+            is_admin=True,
+            name="Admin",
+            date_of_birth=datetime(1990, 1, 1).date(),
+            sex="Other",
+            city="AdminCity",
+            email="admin@example.com",
+            intro="Admin user"
+        )
         db.session.add(admin)
         db.session.commit()
         print(f'Admin user created: {admin_username} / {admin_password}')
@@ -130,6 +217,8 @@ def delete_all_questions():
 
 @app.route('/')
 def home():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     return render_template('home.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -139,7 +228,17 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, password_hash=hashed_pw)
+        from datetime import datetime
+        user = User(
+            username=form.username.data,
+            password_hash=hashed_pw,
+            name=form.name.data,
+            date_of_birth=datetime.strptime(form.date_of_birth.data, '%Y-%m-%d').date(),
+            sex=form.sex.data,
+            city=form.city.data,
+            email=form.email.data,
+            intro=form.intro.data
+        )
         db.session.add(user)
         db.session.commit()
         flash('Account created! You can now log in.', 'success')
@@ -169,7 +268,9 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    total_questions = Question.query.count()
+    answered_count = Response.query.filter_by(user_id=current_user.id).count()
+    return render_template('dashboard.html', total_questions=total_questions, answered_count=answered_count)
 
 @app.route('/admin')
 @login_required
@@ -249,9 +350,27 @@ def import_questions():
 
     return render_template('admin_import_questions.html', form=form) # New template for import page
 
+@app.route('/admin/questions/delete', methods=['POST'])
+@login_required
+def delete_question():
+    if not current_user.is_admin:
+        flash('Admin access required.', 'danger')
+        return redirect(url_for('dashboard'))
+    ids = request.form.getlist('question_ids')
+    if ids:
+        for qid in ids:
+            q = Question.query.get(int(qid))
+            if q:
+                db.session.delete(q)
+        db.session.commit()
+        flash(f'Deleted {len(ids)} question(s).', 'success')
+    else:
+        flash('No questions selected.', 'warning')
+    return redirect(url_for('admin_questions'))
+
 @app.route('/admin/questions/delete/<int:question_id>', methods=['POST'])
 @login_required
-def delete_question(question_id):
+def delete_question_by_id(question_id):
     if not current_user.is_admin:
         flash('Admin access required.', 'danger')
         return redirect(url_for('dashboard'))
@@ -264,25 +383,43 @@ def delete_question(question_id):
 @app.route('/questions', methods=['GET', 'POST'])
 @login_required
 def answer_questions():
+    QUESTIONS_PER_PAGE = 5
     answered_ids = {r.question_id for r in current_user.responses}
-    q = Question.query.filter(~Question.id.in_(answered_ids)).first()
-    if not q:
+    unanswered = Question.query.filter(~Question.id.in_(answered_ids)).all()
+    total_questions = Question.query.count()
+    page = int(request.args.get('page', 1))
+    start = (page - 1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
+    batch = unanswered[start:end]
+    if not batch:
         questions = Question.query.all()
         user_answers = {r.question_id: r.answer for r in current_user.responses}
         return render_template('review_answers.html', questions=questions, user_answers=user_answers)
-    # Choose form options based on question type
-    if q.type == 'yesno':
-        choices = [('10', 'Yes'), ('1', 'No')]
-    else:
-        choices = [(str(i), str(i)) for i in range(1, 11)]
-    form = AnswerForm()
-    form.answer.choices = choices
+    from flask_wtf import FlaskForm
+    from wtforms import RadioField, SubmitField
+    class BatchAnswerForm(FlaskForm):
+        pass
+    # Dynamically add a RadioField for each question
+    for q in batch:
+        if q.type == 'yesno':
+            choices = [('10', 'Yes'), ('1', 'No')]
+        else:
+            choices = [(str(i), str(i)) for i in range(1, 11)]
+        setattr(BatchAnswerForm, f'answer_{q.id}', RadioField(q.text, choices=choices))
+    BatchAnswerForm.submit = SubmitField('Save & Continue')
+    BatchAnswerForm.back = SubmitField('Back to Profile')
+    form = BatchAnswerForm()
+    if request.method == 'POST' and 'back' in request.form:
+        return redirect(url_for('dashboard'))
     if form.validate_on_submit():
-        resp = Response(user_id=current_user.id, question_id=q.id, answer=int(form.answer.data))
-        db.session.add(resp)
+        for q in batch:
+            answer_val = getattr(form, f'answer_{q.id}').data
+            if answer_val:
+                resp = Response(user_id=current_user.id, question_id=q.id, answer=int(answer_val))
+                db.session.add(resp)
         db.session.commit()
-        return redirect(url_for('answer_questions'))
-    return render_template('answer_question.html', form=form, question=q, editing=False)
+        return redirect(url_for('answer_questions', page=page+1))
+    return render_template('answer_batch.html', form=form, batch=batch, page=page, total_questions=total_questions, answered_count=len(answered_ids))
 
 @app.route('/questions/edit/<int:question_id>', methods=['GET', 'POST'])
 @login_required
@@ -384,6 +521,10 @@ def compatibility():
             if not form.show_details.data:
                 details = None
     return render_template('compatibility.html', form=form, result=result, details=details)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     app.run(debug=True)

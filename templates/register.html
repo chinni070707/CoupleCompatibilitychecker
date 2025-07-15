@@ -30,9 +30,26 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h2 class="card-title mb-4 text-center">Sign Up</h2>
+                    <h2 class="card-title mb-3 text-center">Sign Up</h2>
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                            {% for field, errors in form.errors.items() %}
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
                     <form method="POST">
                         {{ form.hidden_tag() }}
+                        <div class="mb-3">{{ form.name.label(class_="form-label") }}{{ form.name(class_="form-control") }}</div>
+                        <div class="mb-3">{{ form.date_of_birth.label(class_="form-label") }}{{ form.date_of_birth(class_="form-control", type="date") }}</div>
+                        <div class="mb-3">{{ form.sex.label(class_="form-label") }}{{ form.sex(class_="form-select") }}</div>
+                        <div class="mb-3">{{ form.city.label(class_="form-label") }}{{ form.city(class_="form-control") }}</div>
+                        <div class="mb-3">{{ form.email.label(class_="form-label") }}{{ form.email(class_="form-control", type="email") }}</div>
+                        <div class="mb-3">{{ form.intro.label(class_="form-label") }}{{ form.intro(class_="form-control", rows=3, placeholder="Tell us a little about yourself...") }}</div>
                         <div class="mb-3">{{ form.username.label(class_="form-label") }}{{ form.username(class_="form-control") }}</div>
                         <div class="mb-3">{{ form.password.label(class_="form-label") }}{{ form.password(class_="form-control") }}</div>
                         <div class="mb-3">{{ form.confirm_password.label(class_="form-label") }}{{ form.confirm_password(class_="form-control") }}</div>

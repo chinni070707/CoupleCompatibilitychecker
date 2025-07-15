@@ -13,7 +13,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
-      <i class="bi bi-heart-fill quirky-heart me-2"></i> Couple Compatibility Scorer
+      <i class="bi bi-heart-fill quirky-heart me-2"></i> Compatibility Score
     </a>
     <div class="collapse navbar-collapse"></div>
   </div>
@@ -40,12 +40,18 @@
                                     </label>
                                 {% endfor %}
                             {% else %}
-                                {{ form.answer.label(class_="form-label") }}<br>
-                                {% for subfield in form.answer %}
-                                    <label class="btn btn-outline-fancy btn-sm mx-1 mb-2">
-                                        {{ subfield() }} {{ subfield.label.text }}
-                                    </label>
-                                {% endfor %}
+                                <input type="range" min="1" max="10" step="1" name="answer" id="slider_answer" value="{{ form.answer.data or 5 }}" class="form-range" list="tickmarks" oninput="document.getElementById('slider_val').innerText = this.value">
+                                <datalist id="tickmarks">
+                                  {% for i in range(1, 11) %}
+                                    <option value="{{ i }}" label="{{ i }}"></option>
+                                  {% endfor %}
+                                </datalist>
+                                <div class="d-flex justify-content-between px-1">
+                                  {% for i in range(1, 11) %}
+                                    <span style="font-size:0.9em;">{{ i }}</span>
+                                  {% endfor %}
+                                </div>
+                                <span id="slider_val" class="fw-bold ms-2">{{ form.answer.data or 5 }}</span>
                             {% endif %}
                         </div>
                         <div class="d-grid gap-2">
@@ -53,7 +59,7 @@
                         </div>
                     </form>
                     <div class="text-center mt-3">
-                        <a href="{{ url_for('answer_questions') }}" class="btn btn-outline-fancy">Back to Review</a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-fancy">Back to Profile</a>
                     </div>
                     {% with messages = get_flashed_messages(with_categories=true) %}
                       {% if messages %}

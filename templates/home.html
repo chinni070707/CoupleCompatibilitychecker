@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Couple Compatibility Checker</title>
+    <title>Compatibility Score</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -14,7 +14,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
-      <i class="bi bi-heart-fill quirky-heart me-2"></i> Couple Compatibility Scorer
+      <i class="bi bi-heart-fill quirky-heart me-2"></i> Compatibility Score
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -30,7 +30,7 @@
 <div class="container position-relative" style="z-index:1;">
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
-            <h1 class="mb-4">Welcome to <span class="text-primary">Couple Compatibility Checker</span></h1>
+            <h1 class="mb-4">Welcome to <span class="text-primary">Compatibility Score</span></h1>
             <p class="lead mb-4">Check your compatibility with your partner in a fun, quirky way!</p>
             <a href="{{ url_for('register') }}" class="btn btn-fancy me-2">Sign Up</a>
             <a href="{{ url_for('login') }}" class="btn btn-outline-fancy">Login</a>

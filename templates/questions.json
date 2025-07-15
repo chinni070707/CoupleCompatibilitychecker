@@ -51,7 +51,7 @@
         { "id": 22, "text": "I am open to relocating for either mine or my partner’s job.", "question_type": "scale" },
         { "id": 23, "text": "Career growth is a top priority for me.", "question_type": "scale" },
         { "id": 24, "text": "I am okay with my partner having a demanding job with late hours.", "question_type": "scale" },
-        { "id": 25, "text": "I am willing to take a break from work for family if needed.", "question_type": "scale" }
+        { "id": 25, "text": "I am willing to take a break from work for family if needed.", "question_type": "yes_no" }
       ]
     },
     {

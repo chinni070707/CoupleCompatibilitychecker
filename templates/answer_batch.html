@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Answer Questions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>❤️</text></svg>">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+      <i class="bi bi-heart-fill quirky-heart me-2"></i> Compatibility Score
+    </a>
+    <div class="collapse navbar-collapse"></div>
+  </div>
+</nav>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title mb-4 text-center">Answer Questions</h2>
+                    <p class="text-center mb-3">Progress: <strong>{{ answered_count }} / {{ total_questions }}</strong></p>
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        {% for q in batch %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">{{ q.text }} <span class="badge bg-secondary">{{ q.category }}</span></label>
+                            <div class="text-center">
+                                {% if q.type == 'yesno' %}
+                                    {% for subfield in form['answer_' ~ q.id] %}
+                                        <label class="btn btn-outline-fancy btn-sm mx-1 mb-2">
+                                            {{ subfield() }} {{ subfield.label.text }}
+                                        </label>
+                                    {% endfor %}
+                                {% else %}
+                                    <input type="range" min="1" max="10" step="1" name="answer_{{ q.id }}" id="slider_{{ q.id }}" value="{{ form['answer_' ~ q.id].data or 5 }}" class="form-range" list="tickmarks_{{ q.id }}" oninput="document.getElementById('slider_val_{{ q.id }}').innerText = this.value">
+                                    <datalist id="tickmarks_{{ q.id }}">
+                                      {% for i in range(1, 11) %}
+                                        <option value="{{ i }}" label="{{ i }}"></option>
+                                      {% endfor %}
+                                    </datalist>
+                                    <div class="d-flex justify-content-between px-1">
+                                      {% for i in range(1, 11) %}
+                                        <span style="font-size:0.9em;">{{ i }}</span>
+                                      {% endfor %}
+                                    </div>
+                                    <span id="slider_val_{{ q.id }}" class="fw-bold ms-2">{{ form['answer_' ~ q.id].data or 5 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class_="btn btn-fancy") }}
+                            {{ form.back(class_="btn btn-outline-fancy") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
